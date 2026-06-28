@@ -18,6 +18,7 @@
 
 	const navLinks = [
 		{ href: '/study', label: 'Estudiar' },
+		{ href: '/alphabet', label: 'Alfabeto' },
 		{ href: '/decks', label: 'Mazos' },
 		{ href: '/stats', label: 'Progreso' }
 	];

@@ -6,12 +6,14 @@ import { calculateNextReview, initialProgress } from '$lib/utils/sm2';
 import type { PageServerLoad, Actions } from './$types';
 import type { AppQuality } from '$lib/utils/sm2';
 
-const CARD_LIMIT = 20;
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 100;
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const userId = locals.user!.id;
 	const deckId = url.searchParams.get('deck') ?? '';
 	const timerSeconds = Number(url.searchParams.get('timer') ?? 10);
+	const cardLimit = Math.min(Number(url.searchParams.get('limit') ?? DEFAULT_LIMIT), MAX_LIMIT);
 	const cardDirection = (url.searchParams.get('direction') ?? 'random') as
 		| 'random'
 		| 'target_to_native'
@@ -49,7 +51,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			)
 		)
 		.orderBy(asc(cardProgress.nextReview))
-		.limit(CARD_LIMIT)
+		.limit(cardLimit)
 		.all();
 
 	if (due.length === 0) redirect(302, '/study');
