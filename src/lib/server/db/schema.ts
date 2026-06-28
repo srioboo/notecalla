@@ -1,4 +1,5 @@
-import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { integer, primaryKey, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { relations } from 'drizzle-orm';
 
 export const languages = sqliteTable('languages', {
 	id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -108,17 +109,75 @@ export const sessionEntries = sqliteTable('session_entries', {
 		.$defaultFn(() => new Date())
 });
 
-// One row per (user, language) pair
-export const userSettings = sqliteTable('user_settings', {
-	userId: text('user_id')
-		.notNull()
-		.references(() => users.id, { onDelete: 'cascade' }),
-	languageCode: text('language_code').notNull(),
-	timerSeconds: integer('timer_seconds').notNull().default(10),
-	cardDirection: text('card_direction', {
-		enum: ['target_to_native', 'native_to_target', 'random']
-	})
-		.notNull()
-		.default('random'),
-	showRomaji: integer('show_romaji', { mode: 'boolean' }).notNull().default(true)
-});
+// Composite primary key: one row per (user, language) pair
+export const userSettings = sqliteTable(
+	'user_settings',
+	{
+		userId: text('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		languageCode: text('language_code').notNull(),
+		timerSeconds: integer('timer_seconds').notNull().default(10),
+		cardDirection: text('card_direction', {
+			enum: ['target_to_native', 'native_to_target', 'random']
+		})
+			.notNull()
+			.default('random'),
+		showRomaji: integer('show_romaji', { mode: 'boolean' }).notNull().default(true)
+	},
+	(t) => [primaryKey({ columns: [t.userId, t.languageCode] })]
+);
+
+// ── Relations (used by Drizzle relational query builder) ──────────────────────
+
+export const usersRelations = relations(users, ({ many }) => ({
+	sessions: many(sessions),
+	decks: many(decks),
+	cardProgress: many(cardProgress),
+	studySessions: many(studySessions),
+	settings: many(userSettings)
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+	user: one(users, { fields: [sessions.userId], references: [users.id] })
+}));
+
+export const decksRelations = relations(decks, ({ one, many }) => ({
+	language: one(languages, { fields: [decks.languageId], references: [languages.id] }),
+	creator: one(users, { fields: [decks.createdBy], references: [users.id] }),
+	cards: many(cards),
+	tags: many(deckTags)
+}));
+
+export const deckTagsRelations = relations(deckTags, ({ one }) => ({
+	deck: one(decks, { fields: [deckTags.deckId], references: [decks.id] })
+}));
+
+export const cardsRelations = relations(cards, ({ one, many }) => ({
+	deck: one(decks, { fields: [cards.deckId], references: [decks.id] }),
+	progress: many(cardProgress),
+	sessionEntries: many(sessionEntries)
+}));
+
+export const cardProgressRelations = relations(cardProgress, ({ one }) => ({
+	card: one(cards, { fields: [cardProgress.cardId], references: [cards.id] }),
+	user: one(users, { fields: [cardProgress.userId], references: [users.id] })
+}));
+
+export const studySessionsRelations = relations(studySessions, ({ one, many }) => ({
+	user: one(users, { fields: [studySessions.userId], references: [users.id] }),
+	deck: one(decks, { fields: [studySessions.deckId], references: [decks.id] }),
+	entries: many(sessionEntries)
+}));
+
+export const sessionEntriesRelations = relations(sessionEntries, ({ one }) => ({
+	session: one(studySessions, {
+		fields: [sessionEntries.studySessionId],
+		references: [studySessions.id]
+	}),
+	card: one(cards, { fields: [sessionEntries.cardId], references: [cards.id] })
+}));
+
+export const userSettingsRelations = relations(userSettings, ({ one }) => ({
+	user: one(users, { fields: [userSettings.userId], references: [users.id] })
+}));
