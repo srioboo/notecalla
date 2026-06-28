@@ -1,11 +1,3 @@
-## Project Configuration
-
-- **Language**: TypeScript
-- **Package Manager**: bun
-- **Add-ons**: none
-
----
-
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
@@ -16,25 +8,43 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Stack
 
-- **Framework**: SvelteKit (file-based routing, SSR/SSG, server actions via form actions y `+page.server.ts`)
-- **Language**: TypeScript estricto
-- **Styling**: Tailwind CSS
+- **Framework**: SvelteKit 2 + Svelte 5 (runes mode), TypeScript estricto
+- **Package manager**: Bun
+- **Styling**: Tailwind CSS v4
+- **ORM**: Drizzle ORM
+- **Database**: Turso (libSQL/SQLite) en producción; `file:local.db` en desarrollo
+- **Auth**: Lucia v3 (email/contraseña)
 - **Testing**: Vitest (unit) + Playwright (e2e)
-- **Package manager**: pnpm
+- **Deployment**: Vercel (`@sveltejs/adapter-vercel`)
 
 ## Commands
 
 ```bash
-pnpm dev          # servidor de desarrollo en localhost:5173
-pnpm build        # build de producción
-pnpm preview      # previsualizar el build de producción
-pnpm check        # svelte-check + tsc (errores de tipos y plantillas)
-pnpm lint         # eslint + prettier --check
-pnpm format       # prettier --write
-pnpm test         # vitest (unit tests)
-pnpm test:e2e     # playwright (tests end-to-end)
-pnpm test -- --run src/lib/utils/cards.test.ts  # ejecutar un test concreto
+bun dev               # servidor de desarrollo en localhost:5173
+bun build             # build de producción
+bun preview           # previsualizar el build de producción
+bun check             # svelte-check + tsc
+bun lint              # prettier --check + eslint
+bun format            # prettier --write
+bun test:unit         # vitest (watch mode)
+bun test              # vitest --run (una sola pasada)
+bun test:e2e          # playwright test
+bun run test:unit -- --run src/lib/utils/sm2.test.ts  # un test concreto
+
+bun run db:generate   # generar migración desde schema
+bun run db:migrate    # aplicar migraciones pendientes
+bun run db:push       # push directo al schema (dev)
+bun run db:studio     # Drizzle Studio UI
 ```
+
+## Environment variables
+
+```
+DATABASE_URL         # libsql://... (Turso) o file:local.db (dev)
+DATABASE_AUTH_TOKEN  # token Turso (vacío para file:local.db)
+```
+
+Ver `.env.example` para la plantilla.
 
 ## Architecture
 
@@ -42,39 +52,55 @@ pnpm test -- --run src/lib/utils/cards.test.ts  # ejecutar un test concreto
 
 ```
 src/routes/
-  +layout.svelte          # layout raíz (nav, providers de contexto global)
-  +layout.server.ts       # carga de sesión/usuario en cada ruta
-  (auth)/                 # grupo de rutas sin layout principal
+  +layout.svelte            # layout raíz (tipografía CJK, navbar con LanguageSwitcher)
+  +layout.server.ts         # carga idioma activo de cookie, expone en locals
+  (auth)/                   # grupo sin layout protegido
     login/
     register/
-  (app)/                  # rutas protegidas (requieren sesión)
-    deck/[deckId]/        # detalle y sesión de estudio de un mazo
-    review/               # sesión de repaso espaciado
-    texts/[textId]/       # lectura de texto con anotaciones
+    logout/                 # solo action POST
+  (app)/                    # rutas protegidas
+    +layout.server.ts       # redirige a /login si locals.user es null
+    study/                  # configuración + sesión de vocabulario
+      session/
+      summary/
+    alphabet/
+      ja/                   # hiragana / katakana
+      ko/                   # jamo coreano
+    decks/
+      [deckId]/
+    stats/
 ```
 
 ### Data flow
 
-- **Server data**: `+page.server.ts` / `+layout.server.ts` cargan datos en el servidor y los exponen vía `load()`. El tipo se exporta como `PageServerLoad`.
-- **Form actions**: mutaciones (crear baraja, marcar tarjeta) van por form actions (`+page.server.ts` → `actions`) en lugar de endpoints REST cuando sea posible.
-- **Client stores**: estado efímero de la sesión de estudio (progreso de la ronda actual) vive en stores de Svelte en `src/lib/stores/`.
-- **API routes**: `src/routes/api/` solo para peticiones que necesiten JSON explícito (e.g., sincronización offline).
+- **Server data**: `+page.server.ts` / `+layout.server.ts` con `load()` — tipos exportados como `PageServerLoad` / `LayoutServerLoad`.
+- **Mutations**: form actions en `+page.server.ts` (`actions: { default, create, … }`). Usar `use:enhance` en el cliente para progressive enhancement.
+- **Client state**: sesión de estudio activa (cola de tarjetas, índice, calidades) en `src/lib/stores/session.ts`. No pasar como props encadenadas.
+- **API routes**: `src/routes/api/` solo si se necesita JSON explícito.
 
 ### Domain modules (`src/lib/`)
 
-- `src/lib/server/` — código exclusivo de servidor (DB, auth). **Nunca importar desde componentes cliente.**
+- `src/lib/server/` — exclusivo de servidor (DB, auth). **No importar desde componentes cliente.**
+- `src/lib/server/db/schema.ts` — fuente de verdad del modelo. Inferir tipos desde aquí, no duplicarlos.
+- `src/lib/server/db/index.ts` — instancia `db` de Drizzle.
+- `src/lib/server/auth.ts` — instancia de Lucia.
+- `src/lib/utils/sm2.ts` — algoritmo SM-2 (función pura, sin dependencias de framework).
 - `src/lib/stores/` — Svelte stores reutilizables.
-- `src/lib/utils/` — funciones puras sin dependencias de framework (algoritmo SM-2 de repaso espaciado, parsers de texto, etc.).
-- `src/lib/components/` — componentes UI reutilizables. Cada componente en su propia carpeta si necesita sub-componentes o tipos propios.
+- `src/lib/components/` — componentes UI (`FlashCard`, `Timer`, `LanguageSwitcher`…).
 
-### Spaced repetition
+### Spaced repetition (SM-2)
 
-El núcleo del dominio es el algoritmo SM-2 que vive en `src/lib/utils/sm2.ts`. Calcula el intervalo de siguiente revisión a partir de la calidad de la respuesta (0-5). Los tests de esta lógica son los más críticos del proyecto.
+`src/lib/utils/sm2.ts` expone `calculateNextReview(progress, quality: 0|1|2|3)`. Escala interna: 0→no lo sabía, 1→difícil, 2→fácil, 3→muy fácil, mapeados a calidad SM-2 0–5. Tests en `sm2.test.ts`.
 
-## Key conventions
+### Auth (Lucia v3)
 
-- Inferir tipos desde `$lib/server/db/schema.ts` (la fuente de verdad del modelo de datos) en lugar de duplicar tipos manualmente.
-- Los `load()` de servidor devuelven solo los datos que la página necesita; no serializar objetos enteros de BD.
-- Las rutas protegidas comprueban la sesión en el `+layout.server.ts` del grupo `(app)` y redirigen a `/login` si no hay sesión — no repetir esta comprobación en cada ruta hija.
-- Prefer `<form>` + progressive enhancement (`use:enhance`) sobre fetch manual para mutaciones.
-- Los componentes de tarjeta y sesión de estudio son los más interactivos; mantener el estado de la sesión en un store dedicado, no en props encadenadas.
+- `src/lib/server/auth.ts` — instancia Lucia con `DrizzleSQLiteAdapter`.
+- `src/hooks.server.ts` — valida cookie de sesión en cada request, escribe `locals.user` y `locals.session`.
+- La protección de rutas va solo en `src/routes/(app)/+layout.server.ts`; las rutas hijas no comprueban sesión de nuevo.
+
+### Key conventions
+
+- Los `load()` devuelven solo los datos que la vista necesita; no serializar filas enteras de BD.
+- Usar `crypto.randomUUID()` para IDs (ya configurado como `$defaultFn` en el schema).
+- El selector de idioma activo persiste en cookie (`lang`); `+layout.server.ts` lo lee y lo expone en `locals`.
+- Svelte 5 runes mode está activo globalmente (configurado en `vite.config.ts`). Usar `$state`, `$derived`, `$effect` — no `writable`/`derived` de Svelte 4 en componentes.
