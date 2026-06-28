@@ -33,6 +33,7 @@
 	class="min-h-56 rounded-3xl bg-white p-8 text-center shadow-sm ring-1 ring-gray-200"
 	role="region"
 	aria-label="Tarjeta de estudio"
+	data-testid="flashcard"
 >
 	{#if showNativeFirst}
 		<p class="text-sm font-medium text-gray-400">{frontHint ?? '¿Qué significa?'}</p>
