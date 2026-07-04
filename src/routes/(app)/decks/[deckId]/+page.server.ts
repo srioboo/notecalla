@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	});
 	if (!deck) error(404, 'Mazo no encontrado.');
 
-	const deckCards = await db.select().from(cards).where(eq(cards.deckId, params.deckId)).all();
+	const deckCards = await db.select().from(cards).where(eq(cards.deckId, params.deckId));
 
 	return { deck, cards: deckCards };
 };

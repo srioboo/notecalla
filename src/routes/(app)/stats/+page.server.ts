@@ -14,17 +14,15 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 			.from(studySessions)
 			.where(and(eq(studySessions.userId, userId), eq(studySessions.languageId, activeLang)))
 			.orderBy(desc(studySessions.startedAt))
-			.limit(10)
-			.all(),
+			.limit(10),
 
 		// Daily streak — count distinct dates going back continuously from today
 		db
-			.select({ day: sql<string>`date(started_at, 'unixepoch')`.as('day') })
+			.select({ day: sql<string>`DATE(${studySessions.startedAt})`.as('day') })
 			.from(studySessions)
 			.where(and(eq(studySessions.userId, userId), eq(studySessions.languageId, activeLang)))
-			.groupBy(sql`date(started_at, 'unixepoch')`)
-			.orderBy(desc(sql`date(started_at, 'unixepoch')`))
-			.all(),
+			.groupBy(sql`DATE(${studySessions.startedAt})`)
+			.orderBy(desc(sql`DATE(${studySessions.startedAt})`)),
 
 		// SM-2 distribution
 		db
@@ -35,8 +33,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 			.from(cardProgress)
 			.innerJoin(cards, eq(cards.id, cardProgress.cardId))
 			.where(eq(cardProgress.userId, userId))
-			.groupBy(cardProgress.interval)
-			.all(),
+			.groupBy(cardProgress.interval),
 
 		// Top 10 hardest cards
 		db
@@ -53,7 +50,6 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 			.groupBy(sessionEntries.cardId)
 			.orderBy(desc(sql`fails`))
 			.limit(10)
-			.all()
 	]);
 
 	// Compute streak from consecutive days

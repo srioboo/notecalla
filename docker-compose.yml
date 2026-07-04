@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: notecalla
+      POSTGRES_PASSWORD: notecalla
+      POSTGRES_DB: notecalla
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notecalla"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://notecalla:notecalla@postgres:5432/notecalla
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

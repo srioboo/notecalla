@@ -1,42 +1,92 @@
-# sv
+# Notecalla
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Aplicación web de aprendizaje de idiomas mediante tarjetas de memoria (flashcards) con repaso espaciado (SM-2). Soporta japonés y coreano. Multiusuario, autosuficiente, sin dependencias de servicios externos.
 
-## Creating a project
+## Stack
 
-If you're seeing this, you've probably already done this step. Congrats!
+- **Framework**: SvelteKit 2 + Svelte 5 (runes mode), TypeScript estricto
+- **Styling**: Tailwind CSS v4
+- **ORM**: Drizzle ORM
+- **Base de datos**: PostgreSQL (Docker en local, cualquier servidor PG en producción)
+- **Auth**: Lucia v3 (email/contraseña)
+- **Testing**: Vitest (unit) + Playwright (e2e)
+- **Runtime**: Node.js 22 (`adapter-node`)
+- **Package manager**: Bun
 
-```sh
-# create a new project
-npx sv create my-app
+## Requisitos
+
+- [Bun](https://bun.sh) ≥ 1.0
+- [Docker](https://www.docker.com) (para PostgreSQL local)
+
+## Configuración local
+
+```bash
+# 1. Instalar dependencias
+bun install
+
+# 2. Copiar variables de entorno
+cp .env.example .env
+
+# 3. Levantar PostgreSQL
+docker compose up postgres -d
+
+# 4. Aplicar schema
+bun run db:migrate
+
+# 5. Poblar datos iniciales (mazos de hiragana, katakana, jamo...)
+bun run db:seed
+
+# 6. Servidor de desarrollo
+bun dev
 ```
 
-To recreate this project with the same configuration:
+La app queda disponible en `http://localhost:5173`.
 
-```sh
-# recreate this project
-bun x sv@0.16.1 create --template minimal --types ts --install bun .
+## Variables de entorno
+
+```
+DATABASE_URL   # postgresql://user:password@host:5432/db
 ```
 
-## Developing
+Ver `.env.example` para la plantilla.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Comandos
 
-```sh
-npm run dev
+```bash
+bun dev               # servidor de desarrollo (localhost:5173)
+bun build             # build de producción
+bun preview           # previsualizar el build de producción
+bun check             # svelte-check + tsc
+bun lint              # prettier --check + eslint
+bun format            # prettier --write
+bun test              # vitest --run (una sola pasada)
+bun test:unit         # vitest (watch mode)
+bun test:e2e          # playwright test
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+bun run db:generate   # generar migración desde schema
+bun run db:migrate    # aplicar migraciones pendientes
+bun run db:push       # push directo al schema (dev)
+bun run db:studio     # Drizzle Studio UI
 ```
 
-## Building
+## Docker
 
-To create a production version of your app:
+```bash
+# Solo base de datos (para desarrollo local)
+docker compose up postgres -d
 
-```sh
-npm run build
+# App completa (build + PostgreSQL)
+docker compose up --build
 ```
 
-You can preview the production build with `npm run preview`.
+La app completa queda en `http://localhost:3000`.
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## Despliegue en producción
+
+La app genera un servidor Node.js estándar en `build/`. Cualquier plataforma que soporte contenedores Docker o procesos Node.js es compatible: Fly.io, Railway, VPS, etc.
+
+Requisito: proporcionar `DATABASE_URL` apuntando a un servidor PostgreSQL accesible.
+
+## Licencia
+
+MIT

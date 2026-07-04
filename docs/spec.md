@@ -140,18 +140,33 @@ Los siguientes elementos se dejan explícitamente fuera de la primera versión:
 
 ---
 
-## 10. Modelo de datos (borrador)
+## 10. Modelo de datos
 
-```
-Language        id, code ("ja" | "ko"), name, scripts[]
-Deck            id, languageId, name, description, isSystem, themeTag[], grammarTag[]
-Card            id, deckId, native, reading, translation, exampleSentence, notes, suspended
-CardProgress    id, cardId, userId, easeFactor, interval, nextReview, repetitions
-Session         id, userId, languageId, deckId, startedAt, completedAt, totalCards, correctCards
-SessionEntry    id, sessionId, cardId, quality (0-3), responseTimeMs, reviewedAt
-User            id, email, nativeLanguage, createdAt
-UserSettings    userId, timerSeconds, cardDirection, showRomaji (per language)
-```
+Implementado con Drizzle ORM sobre PostgreSQL. Todas las tablas usan UUIDs como clave primaria generados en aplicación con `crypto.randomUUID()`.
+
+| Tabla | Columnas clave | Notas |
+|---|---|---|
+| `languages` | `id`, `code` (`ja`\|`ko`), `name` | `code` único |
+| `users` | `id`, `email`, `password_hash`, `native_language`, `created_at` | `email` único |
+| `sessions` | `id`, `user_id`, `expires_at` | Tabla de sesiones Lucia v3 |
+| `decks` | `id`, `language_id`, `name`, `description`, `is_system`, `created_by`, `created_at` | `is_system=true` → solo lectura |
+| `deck_tags` | `deck_id`, `tag`, `tag_type` (`theme`\|`grammar`) | Sin PK propio |
+| `cards` | `id`, `deck_id`, `native`, `reading`, `translation`, `example`, `notes`, `suspended` | |
+| `card_progress` | `id`, `card_id`, `user_id`, `ease_factor`, `interval`, `next_review`, `repetitions` | Estado SM-2 por (usuario, tarjeta) |
+| `study_sessions` | `id`, `user_id`, `language_id`, `deck_id`, `started_at`, `completed_at`, `total_cards`, `correct_cards` | |
+| `session_entries` | `id`, `study_session_id`, `card_id`, `quality` (0–3), `response_time_ms`, `reviewed_at` | |
+| `user_settings` | `user_id` + `language_code` (PK compuesta), `timer_seconds`, `card_direction`, `show_romaji` | Una fila por (usuario, idioma) |
+
+### Escala de calidad SM-2
+
+| Valor | Significado |
+|---|---|
+| 0 | No lo sabía |
+| 1 | Difícil |
+| 2 | Fácil |
+| 3 | Muy fácil |
+
+Mapeados internamente a la escala 0–5 del algoritmo SM-2 original.
 
 ---
 

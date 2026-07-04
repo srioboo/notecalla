@@ -24,8 +24,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		})
 		.from(sessionEntries)
 		.innerJoin(cards, eq(cards.id, sessionEntries.cardId))
-		.where(eq(sessionEntries.studySessionId, sessionId))
-		.all();
+		.where(eq(sessionEntries.studySessionId, sessionId));
 
 	const accuracy =
 		entries.length > 0

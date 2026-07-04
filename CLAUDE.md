@@ -12,10 +12,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Package manager**: Bun
 - **Styling**: Tailwind CSS v4
 - **ORM**: Drizzle ORM
-- **Database**: Turso (libSQL/SQLite) en producción; `file:local.db` en desarrollo
+- **Database**: PostgreSQL (Docker local; cualquier servidor PG en producción)
 - **Auth**: Lucia v3 (email/contraseña)
 - **Testing**: Vitest (unit) + Playwright (e2e)
-- **Deployment**: Vercel (`@sveltejs/adapter-vercel`)
+- **Deployment**: Node.js 22 (`@sveltejs/adapter-node`); contenerizable con Docker
 
 ## Commands
 
@@ -40,11 +40,10 @@ bun run db:studio     # Drizzle Studio UI
 ## Environment variables
 
 ```
-DATABASE_URL         # libsql://... (Turso) o file:local.db (dev)
-DATABASE_AUTH_TOKEN  # token Turso (vacío para file:local.db)
+DATABASE_URL   # postgresql://user:password@host:5432/db
 ```
 
-Ver `.env.example` para la plantilla.
+Ver `.env.example` para la plantilla. En local usar Docker: `docker compose up postgres -d`.
 
 ## Architecture
 

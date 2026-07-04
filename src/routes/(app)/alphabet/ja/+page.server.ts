@@ -15,8 +15,7 @@ export const load: PageServerLoad = async () => {
 				eq(decks.languageId, 'ja'),
 				eq(decks.isSystem, true)
 			)
-		)
-		.all();
+		);
 
 	// Filter to alphabet decks only (exclude vocabulary decks)
 	const filtered = alphabetDecks.filter((d) => ALPHABET_DECK_NAMES.includes(d.name));

@@ -51,8 +51,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			)
 		)
 		.orderBy(asc(cardProgress.nextReview))
-		.limit(cardLimit)
-		.all();
+		.limit(cardLimit);
 
 	if (due.length === 0) redirect(302, '/study');
 

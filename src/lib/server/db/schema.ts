@@ -1,54 +1,54 @@
-import { integer, primaryKey, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { boolean, doublePrecision, integer, pgTable, primaryKey, text, timestamp } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-export const languages = sqliteTable('languages', {
+export const languages = pgTable('languages', {
 	id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
 	code: text('code').notNull().unique(), // 'ja' | 'ko'
 	name: text('name').notNull()
 });
 
-export const users = sqliteTable('users', {
+export const users = pgTable('users', {
 	id: text('id').primaryKey(),
 	email: text('email').notNull().unique(),
 	passwordHash: text('password_hash').notNull(),
 	nativeLanguage: text('native_language').notNull().default('es'),
-	createdAt: integer('created_at', { mode: 'timestamp' })
+	createdAt: timestamp('created_at')
 		.notNull()
 		.$defaultFn(() => new Date())
 });
 
 // Lucia v3 sessions table
-export const sessions = sqliteTable('sessions', {
+export const sessions = pgTable('sessions', {
 	id: text('id').primaryKey(),
 	userId: text('user_id')
 		.notNull()
 		.references(() => users.id, { onDelete: 'cascade' }),
-	expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull()
+	expiresAt: timestamp('expires_at').notNull()
 });
 
-export const decks = sqliteTable('decks', {
+export const decks = pgTable('decks', {
 	id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
 	languageId: text('language_id')
 		.notNull()
 		.references(() => languages.id),
 	name: text('name').notNull(),
 	description: text('description'),
-	isSystem: integer('is_system', { mode: 'boolean' }).notNull().default(false),
+	isSystem: boolean('is_system').notNull().default(false),
 	createdBy: text('created_by').references(() => users.id, { onDelete: 'set null' }),
-	createdAt: integer('created_at', { mode: 'timestamp' })
+	createdAt: timestamp('created_at')
 		.notNull()
 		.$defaultFn(() => new Date())
 });
 
-export const deckTags = sqliteTable('deck_tags', {
+export const deckTags = pgTable('deck_tags', {
 	deckId: text('deck_id')
 		.notNull()
 		.references(() => decks.id, { onDelete: 'cascade' }),
 	tag: text('tag').notNull(),
-	tagType: text('tag_type', { enum: ['theme', 'grammar'] }).notNull()
+	tagType: text('tag_type').$type<'theme' | 'grammar'>().notNull()
 });
 
-export const cards = sqliteTable('cards', {
+export const cards = pgTable('cards', {
 	id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
 	deckId: text('deck_id')
 		.notNull()
@@ -58,10 +58,10 @@ export const cards = sqliteTable('cards', {
 	translation: text('translation').notNull(),
 	example: text('example'),
 	notes: text('notes'),
-	suspended: integer('suspended', { mode: 'boolean' }).notNull().default(false)
+	suspended: boolean('suspended').notNull().default(false)
 });
 
-export const cardProgress = sqliteTable('card_progress', {
+export const cardProgress = pgTable('card_progress', {
 	id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
 	cardId: text('card_id')
 		.notNull()
@@ -69,15 +69,15 @@ export const cardProgress = sqliteTable('card_progress', {
 	userId: text('user_id')
 		.notNull()
 		.references(() => users.id, { onDelete: 'cascade' }),
-	easeFactor: real('ease_factor').notNull().default(2.5),
+	easeFactor: doublePrecision('ease_factor').notNull().default(2.5),
 	interval: integer('interval').notNull().default(0), // days until next review
-	nextReview: integer('next_review', { mode: 'timestamp' })
+	nextReview: timestamp('next_review')
 		.notNull()
 		.$defaultFn(() => new Date()),
 	repetitions: integer('repetitions').notNull().default(0)
 });
 
-export const studySessions = sqliteTable('study_sessions', {
+export const studySessions = pgTable('study_sessions', {
 	id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
 	userId: text('user_id')
 		.notNull()
@@ -86,15 +86,15 @@ export const studySessions = sqliteTable('study_sessions', {
 		.notNull()
 		.references(() => languages.id),
 	deckId: text('deck_id').references(() => decks.id, { onDelete: 'set null' }),
-	startedAt: integer('started_at', { mode: 'timestamp' })
+	startedAt: timestamp('started_at')
 		.notNull()
 		.$defaultFn(() => new Date()),
-	completedAt: integer('completed_at', { mode: 'timestamp' }),
+	completedAt: timestamp('completed_at'),
 	totalCards: integer('total_cards').notNull().default(0),
 	correctCards: integer('correct_cards').notNull().default(0)
 });
 
-export const sessionEntries = sqliteTable('session_entries', {
+export const sessionEntries = pgTable('session_entries', {
 	id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
 	studySessionId: text('study_session_id')
 		.notNull()
@@ -104,13 +104,13 @@ export const sessionEntries = sqliteTable('session_entries', {
 		.references(() => cards.id, { onDelete: 'cascade' }),
 	quality: integer('quality').notNull(), // 0–3 mapped to SM-2 quality 0–5
 	responseTimeMs: integer('response_time_ms'),
-	reviewedAt: integer('reviewed_at', { mode: 'timestamp' })
+	reviewedAt: timestamp('reviewed_at')
 		.notNull()
 		.$defaultFn(() => new Date())
 });
 
 // Composite primary key: one row per (user, language) pair
-export const userSettings = sqliteTable(
+export const userSettings = pgTable(
 	'user_settings',
 	{
 		userId: text('user_id')
@@ -118,12 +118,11 @@ export const userSettings = sqliteTable(
 			.references(() => users.id, { onDelete: 'cascade' }),
 		languageCode: text('language_code').notNull(),
 		timerSeconds: integer('timer_seconds').notNull().default(10),
-		cardDirection: text('card_direction', {
-			enum: ['target_to_native', 'native_to_target', 'random']
-		})
+		cardDirection: text('card_direction')
+			.$type<'target_to_native' | 'native_to_target' | 'random'>()
 			.notNull()
 			.default('random'),
-		showRomaji: integer('show_romaji', { mode: 'boolean' }).notNull().default(true)
+		showRomaji: boolean('show_romaji').notNull().default(true)
 	},
 	(t) => [primaryKey({ columns: [t.userId, t.languageCode] })]
 );

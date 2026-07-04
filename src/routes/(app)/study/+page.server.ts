@@ -13,8 +13,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 		db
 			.select({ id: decks.id, name: decks.name, description: decks.description, isSystem: decks.isSystem })
 			.from(decks)
-			.where(and(eq(decks.languageId, activeLang), or(eq(decks.isSystem, true), eq(decks.createdBy, userId))))
-			.all(),
+			.where(and(eq(decks.languageId, activeLang), or(eq(decks.isSystem, true), eq(decks.createdBy, userId)))),
 		db.query.userSettings.findFirst({
 			where: and(eq(userSettings.userId, userId), eq(userSettings.languageCode, activeLang))
 		})

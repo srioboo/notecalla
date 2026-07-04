@@ -6,7 +6,7 @@ import type { Adapter, DatabaseSession, DatabaseUser } from 'lucia';
 
 const adapter: Adapter = {
 	async getSessionAndUser(sessionId) {
-		const row = await db
+		const [row] = await db
 			.select({
 				session: sessions,
 				user: users
@@ -14,7 +14,7 @@ const adapter: Adapter = {
 			.from(sessions)
 			.innerJoin(users, eq(sessions.userId, users.id))
 			.where(eq(sessions.id, sessionId))
-			.get();
+			.limit(1);
 
 		if (!row) return [null, null];
 
@@ -36,7 +36,7 @@ const adapter: Adapter = {
 	},
 
 	async getUserSessions(userId) {
-		const rows = await db.select().from(sessions).where(eq(sessions.userId, userId)).all();
+		const rows = await db.select().from(sessions).where(eq(sessions.userId, userId));
 		return rows.map(
 			(s): DatabaseSession => ({
 				id: s.id,
