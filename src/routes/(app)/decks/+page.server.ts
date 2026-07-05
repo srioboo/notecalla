@@ -2,12 +2,13 @@ import { db } from '$lib/server/db/index';
 import { decks, cards } from '$lib/server/db/schema';
 import { and, eq, or, count } from 'drizzle-orm';
 import { fail, redirect } from '@sveltejs/kit';
-import { getActiveLang } from '$lib/server/lang';
+import { getActiveLang, getLangId } from '$lib/server/lang';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ locals, cookies }) => {
 	const activeLang = getActiveLang(cookies);
 	const userId = locals.user!.id;
+	const langId = await getLangId(activeLang);
 
 	const rows = await db
 		.select({
@@ -20,7 +21,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 		})
 		.from(decks)
 		.leftJoin(cards, and(eq(cards.deckId, decks.id), eq(cards.suspended, false)))
-		.where(and(eq(decks.languageId, activeLang), or(eq(decks.isSystem, true), eq(decks.createdBy, userId))))
+		.where(and(eq(decks.languageId, langId), or(eq(decks.isSystem, true), eq(decks.createdBy, userId))))
 		.groupBy(decks.id);
 
 	return { decks: rows };
@@ -30,13 +31,14 @@ export const actions: Actions = {
 	create: async ({ request, locals, cookies }) => {
 		const activeLang = getActiveLang(cookies);
 		const userId = locals.user!.id;
+		const langId = await getLangId(activeLang);
 		const data = await request.formData();
 
 		const name = String(data.get('name') ?? '').trim();
 		if (!name) return fail(400, { error: 'El nombre del mazo es obligatorio.' });
 
 		await db.insert(decks).values({
-			languageId: activeLang,
+			languageId: langId,
 			name,
 			description: String(data.get('description') ?? '').trim() || null,
 			isSystem: false,
@@ -47,6 +49,7 @@ export const actions: Actions = {
 	clone: async ({ request, locals, cookies }) => {
 		const activeLang = getActiveLang(cookies);
 		const userId = locals.user!.id;
+		const langId = await getLangId(activeLang);
 		const data = await request.formData();
 		const sourceDeckId = String(data.get('deckId') ?? '');
 
@@ -59,7 +62,7 @@ export const actions: Actions = {
 		const [newDeck] = await db
 			.insert(decks)
 			.values({
-				languageId: activeLang,
+				languageId: langId,
 				name: `${source.name} (copia)`,
 				description: source.description,
 				isSystem: false,

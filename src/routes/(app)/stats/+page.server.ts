@@ -1,18 +1,20 @@
 import { db } from '$lib/server/db/index';
 import { studySessions, sessionEntries, cardProgress, cards } from '$lib/server/db/schema';
 import { and, eq, desc, sql, count, sum } from 'drizzle-orm';
+import { getLangId } from '$lib/server/lang';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, parent }) => {
 	const { activeLang } = await parent();
 	const userId = locals.user!.id;
+	const langId = await getLangId(activeLang);
 
 	const [sessions, streak, sm2Dist, hardCards] = await Promise.all([
 		// Last 10 sessions
 		db
 			.select()
 			.from(studySessions)
-			.where(and(eq(studySessions.userId, userId), eq(studySessions.languageId, activeLang)))
+			.where(and(eq(studySessions.userId, userId), eq(studySessions.languageId, langId)))
 			.orderBy(desc(studySessions.startedAt))
 			.limit(10),
 
@@ -20,7 +22,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		db
 			.select({ day: sql<string>`DATE(${studySessions.startedAt})`.as('day') })
 			.from(studySessions)
-			.where(and(eq(studySessions.userId, userId), eq(studySessions.languageId, activeLang)))
+			.where(and(eq(studySessions.userId, userId), eq(studySessions.languageId, langId)))
 			.groupBy(sql`DATE(${studySessions.startedAt})`)
 			.orderBy(desc(sql`DATE(${studySessions.startedAt})`)),
 

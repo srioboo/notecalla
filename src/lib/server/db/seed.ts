@@ -1,14 +1,15 @@
-import { drizzle } from 'drizzle-orm/libsql';
-import { createClient } from '@libsql/client';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import * as schema from './schema';
 import { languages, decks, cards, deckTags } from './schema';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const url = process.env.DATABASE_URL ?? 'file:local.db';
-const authToken = url.startsWith('file:') ? undefined : process.env.DATABASE_AUTH_TOKEN;
-const client = createClient({ url, authToken });
+const url = process.env.DATABASE_URL;
+if (!url) throw new Error('DATABASE_URL is not set');
+
+const client = postgres(url);
 const db = drizzle(client, { schema });
 
 // ── Hiragana ─────────────────────────────────────────────────────────────────
@@ -294,7 +295,7 @@ async function seed() {
 	}
 
 	console.log('✅ Seed completado.');
-	client.close();
+	await client.end();
 }
 
 seed().catch((e) => { console.error(e); process.exit(1); });

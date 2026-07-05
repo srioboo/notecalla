@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db/index';
 import { cards, cardProgress, studySessions, sessionEntries, decks } from '$lib/server/db/schema';
-import { and, eq, lte, asc, sql } from 'drizzle-orm';
+import { and, eq, lte, asc, or, isNull } from 'drizzle-orm';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { calculateNextReview, initialProgress } from '$lib/utils/sm2';
 import type { PageServerLoad, Actions } from './$types';
@@ -46,8 +46,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			and(
 				eq(cards.deckId, deckId),
 				eq(cards.suspended, false),
-				// Due now: either no progress (new) or nextReview <= now
-				sql`(${cardProgress.id} IS NULL OR ${cardProgress.nextReview} <= ${now})`
+				or(isNull(cardProgress.id), lte(cardProgress.nextReview, now))
 			)
 		)
 		.orderBy(asc(cardProgress.nextReview))
