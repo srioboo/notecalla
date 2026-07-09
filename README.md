@@ -7,7 +7,7 @@ Aplicación web de aprendizaje de idiomas mediante tarjetas de memoria (flashcar
 - **Framework**: SvelteKit 2 + Svelte 5 (runes mode), TypeScript estricto
 - **Styling**: Tailwind CSS v4
 - **ORM**: Drizzle ORM
-- **Base de datos**: PostgreSQL (Docker en local, cualquier servidor PG en producción)
+- **Base de datos**: PostgreSQL (Podman/Docker en local, cualquier servidor PG en producción)
 - **Auth**: Lucia v3 (email/contraseña)
 - **Testing**: Vitest (unit) + Playwright (e2e)
 - **Runtime**: Node.js 22 (`adapter-node`)
@@ -16,7 +16,7 @@ Aplicación web de aprendizaje de idiomas mediante tarjetas de memoria (flashcar
 ## Requisitos
 
 - [Bun](https://bun.sh) ≥ 1.0
-- [Docker](https://www.docker.com) (para PostgreSQL local)
+- [Podman](https://podman.io) o [Docker](https://www.docker.com) (para PostgreSQL local)
 
 ## Configuración local
 
@@ -28,9 +28,10 @@ bun install
 cp .env.example .env
 
 # 3. Levantar PostgreSQL
-docker compose up postgres -d
+podman compose up postgres -d   # o: docker compose up postgres -d
 
-# 4. Aplicar schema
+# 4. Generar y aplicar migraciones
+bun run db:generate
 bun run db:migrate
 
 # 5. Poblar datos iniciales (mazos de hiragana, katakana, jamo...)
@@ -69,21 +70,21 @@ bun run db:push       # push directo al schema (dev)
 bun run db:studio     # Drizzle Studio UI
 ```
 
-## Docker
+## Contenedores (Podman / Docker)
 
 ```bash
 # Solo base de datos (para desarrollo local)
-docker compose up postgres -d
+podman compose up postgres -d   # o: docker compose up postgres -d
 
 # App completa (build + PostgreSQL)
-docker compose up --build
+podman compose up --build       # o: docker compose up --build
 ```
 
 La app completa queda en `http://localhost:3000`.
 
 ## Despliegue en producción
 
-La app genera un servidor Node.js estándar en `build/`. Cualquier plataforma que soporte contenedores Docker o procesos Node.js es compatible: Fly.io, Railway, VPS, etc.
+La app genera un servidor Node.js estándar en `build/`. Cualquier plataforma que soporte contenedores OCI/Docker o procesos Node.js es compatible: Fly.io, Railway, VPS, etc.
 
 Requisito: proporcionar `DATABASE_URL` apuntando a un servidor PostgreSQL accesible.
 
