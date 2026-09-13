@@ -29,6 +29,22 @@ jobs:
   test:
     name: Unit tests
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: notecalla
+          POSTGRES_PASSWORD: notecalla
+          POSTGRES_DB: notecalla
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U notecalla"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://notecalla:notecalla@localhost:5432/notecalla
     steps:
       - uses: actions/checkout@v4
 
@@ -39,14 +55,31 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Apply migrations
+        run: bun run db:migrate
+
       - name: Run unit tests
         run: bun run test
-        env:
-          DATABASE_URL: file:test.db
 
   e2e:
     name: E2E tests
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: notecalla
+          POSTGRES_PASSWORD: notecalla
+          POSTGRES_DB: notecalla
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U notecalla"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://notecalla:notecalla@localhost:5432/notecalla
     steps:
       - uses: actions/checkout@v4
 
@@ -60,12 +93,11 @@ jobs:
       - name: Install Playwright browsers
         run: bunx playwright install --with-deps chromium
 
+      - name: Apply migrations
+        run: bun run db:migrate
+
       - name: Seed test database
         run: bun run db:seed
-        env:
-          DATABASE_URL: file:e2e.db
 
       - name: Run E2E tests
         run: bun run test:e2e
-        env:
-          DATABASE_URL: file:e2e.db
