@@ -15,9 +15,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const timerSeconds = Number(url.searchParams.get('timer') ?? 10);
 	const cardLimit = Math.min(Number(url.searchParams.get('limit') ?? DEFAULT_LIMIT), MAX_LIMIT);
 	const cardDirection = (url.searchParams.get('direction') ?? 'random') as
-		| 'random'
-		| 'target_to_native'
-		| 'native_to_target';
+		'random' | 'target_to_native' | 'native_to_target';
 	const showRomaji = url.searchParams.get('romaji') !== 'false';
 
 	if (!deckId) redirect(302, '/study');
@@ -38,10 +36,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			nextReview: cardProgress.nextReview
 		})
 		.from(cards)
-		.leftJoin(
-			cardProgress,
-			and(eq(cardProgress.cardId, cards.id), eq(cardProgress.userId, userId))
-		)
+		.leftJoin(cardProgress, and(eq(cardProgress.cardId, cards.id), eq(cardProgress.userId, userId)))
 		.where(
 			and(
 				eq(cards.deckId, deckId),
@@ -119,7 +114,12 @@ export const actions: Actions = {
 				if (existing) {
 					await db
 						.update(cardProgress)
-						.set({ easeFactor: next.easeFactor, interval: next.interval, nextReview: next.nextReview, repetitions: next.repetitions })
+						.set({
+							easeFactor: next.easeFactor,
+							interval: next.interval,
+							nextReview: next.nextReview,
+							repetitions: next.repetitions
+						})
 						.where(eq(cardProgress.id, existing.id));
 				} else {
 					await db.insert(cardProgress).values({

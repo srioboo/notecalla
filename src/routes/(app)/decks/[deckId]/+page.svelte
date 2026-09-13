@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -11,7 +12,7 @@
 
 <div class="space-y-6">
 	<div class="flex items-center gap-4">
-		<a href="/decks" class="text-sm text-gray-400 hover:text-gray-600">← Mazos</a>
+		<a href={resolve('/decks')} class="text-sm text-gray-400 hover:text-gray-600">← Mazos</a>
 		<div class="flex-1">
 			<h1 class="text-2xl font-bold text-gray-900">{data.deck.name}</h1>
 			{#if data.deck.description}
@@ -39,7 +40,11 @@
 			<form
 				method="POST"
 				action="?/addCard"
-				use:enhance={() => async ({ update }) => { showAdd = false; await update(); }}
+				use:enhance={() =>
+					async ({ update }) => {
+						showAdd = false;
+						await update();
+					}}
 				class="grid gap-3 sm:grid-cols-2"
 			>
 				<div>
@@ -123,7 +128,7 @@
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-gray-100">
-					{#each data.cards as card}
+					{#each data.cards as card (card.id)}
 						<tr class="hover:bg-gray-50 {card.suspended ? 'opacity-40' : ''}">
 							<td class="px-4 py-3 text-lg">{card.native}</td>
 							<td class="px-4 py-3 text-gray-500">{card.reading ?? '—'}</td>

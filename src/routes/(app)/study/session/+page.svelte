@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import FlashCard from '$lib/components/FlashCard.svelte';
 	import TimerRing from '$lib/components/TimerRing.svelte';
 	import type { PageData } from './$types';
@@ -13,7 +14,6 @@
 	let entries = $state<Array<{ cardId: string; quality: AppQuality; responseTimeMs: number }>>([]);
 	let cardStartTime = $state(Date.now());
 	let timeLeft = $state(data.timerSeconds);
-	let timedOut = $state(false);
 	let finished = $state(false);
 
 	const card = $derived(data.cards[currentIndex]);
@@ -29,7 +29,6 @@
 			timeLeft--;
 			if (timeLeft <= 0) {
 				clearInterval(timerInterval!);
-				timedOut = true;
 				revealed = true;
 			}
 		}, 1000);
@@ -44,7 +43,7 @@
 
 	$effect(() => {
 		// Restart timer each time we move to a new card
-		currentIndex; // track dependency
+		void currentIndex;
 		if (!finished) startTimer();
 		return () => stopTimer();
 	});
@@ -65,7 +64,6 @@
 		} else {
 			currentIndex++;
 			revealed = false;
-			timedOut = false;
 			cardStartTime = Date.now();
 		}
 	}
@@ -87,13 +85,17 @@
 	</form>
 	<div class="flex min-h-[60vh] flex-col items-center justify-center gap-4">
 		<p class="text-lg font-medium text-gray-700">Calculando resultados…</p>
-		<script>document.getElementById('submit-form').submit();</script>
+		<script>
+			document.getElementById('submit-form').submit();
+		</script>
 	</div>
 {:else}
 	<div class="mx-auto max-w-lg space-y-6">
 		<!-- Progress bar + timer -->
 		<div class="flex items-center gap-4">
-			<a href="/study" class="shrink-0 text-sm text-gray-400 hover:text-gray-600">← Salir</a>
+			<a href={resolve('/study')} class="shrink-0 text-sm text-gray-400 hover:text-gray-600"
+				>← Salir</a
+			>
 			<div class="flex-1">
 				<div class="h-2 rounded-full bg-gray-100">
 					<div
@@ -109,12 +111,7 @@
 		</div>
 
 		<!-- Card -->
-		<FlashCard
-			{card}
-			{revealed}
-			direction={data.cardDirection}
-			showRomaji={data.showRomaji}
-		/>
+		<FlashCard {card} {revealed} direction={data.cardDirection} showRomaji={data.showRomaji} />
 
 		<!-- Actions -->
 		{#if !revealed}
@@ -127,7 +124,7 @@
 			</button>
 		{:else}
 			<div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-				{#each QUALITY_LABELS as { q, label, color }}
+				{#each QUALITY_LABELS as { q, label, color } (q)}
 					<button
 						type="button"
 						onclick={() => rate(q)}

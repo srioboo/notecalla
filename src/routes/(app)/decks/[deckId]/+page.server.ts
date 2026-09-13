@@ -47,7 +47,7 @@ export const actions: Actions = {
 		});
 	},
 
-	toggleSuspend: async ({ request, locals, params }) => {
+	toggleSuspend: async ({ request, locals }) => {
 		const userId = locals.user!.id;
 		const data = await request.formData();
 		const cardId = String(data.get('cardId') ?? '');
@@ -60,10 +60,7 @@ export const actions: Actions = {
 			return fail(403, { error: 'Sin permiso.' });
 		}
 
-		await db
-			.update(cards)
-			.set({ suspended: !card.suspended })
-			.where(eq(cards.id, cardId));
+		await db.update(cards).set({ suspended: !card.suspended }).where(eq(cards.id, cardId));
 	},
 
 	deleteCard: async ({ request, locals }) => {

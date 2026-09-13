@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -18,12 +19,6 @@
 	// Consonants: 19, Vowels: 21 — always load all
 	const cardLimit = 30;
 
-	const sessionUrl = $derived(
-		selectedDeck
-			? `/study/session?deck=${selectedDeck}&timer=${timerSeconds}&direction=${direction}&romaji=false&limit=${cardLimit}`
-			: '#'
-	);
-
 	// Preview glyphs per deck
 	const PREVIEWS: Record<string, string> = {
 		'Consonantes (자음)': 'ㄱㄴㄷ',
@@ -35,7 +30,7 @@
 
 <div class="mx-auto max-w-lg space-y-8">
 	<div class="flex items-center gap-4">
-		<a href="/alphabet" class="text-sm text-gray-400 hover:text-gray-600">← Alfabeto</a>
+		<a href={resolve('/alphabet')} class="text-sm text-gray-400 hover:text-gray-600">← Alfabeto</a>
 		<div>
 			<h1 class="text-2xl font-bold text-gray-900">Coreano — Jamo</h1>
 			<p class="mt-0.5 text-sm text-gray-500">Practica consonantes y vocales del hangul.</p>
@@ -47,11 +42,13 @@
 		<p class="mb-3 text-sm font-medium text-gray-700">Elige el conjunto:</p>
 		{#if data.decks.length === 0}
 			<p class="text-sm text-amber-600">
-				No se encontraron mazos de jamo. Ejecuta <code class="rounded bg-gray-100 px-1">bun run db:seed</code>.
+				No se encontraron mazos de jamo. Ejecuta <code class="rounded bg-gray-100 px-1"
+					>bun run db:seed</code
+				>.
 			</p>
 		{:else}
 			<div class="grid gap-3 sm:grid-cols-2">
-				{#each data.decks as deck}
+				{#each data.decks as deck (deck.id)}
 					<button
 						type="button"
 						onclick={() => (selectedDeck = deck.id)}
@@ -109,14 +106,18 @@
 			bind:value={timerSeconds}
 			class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
 		>
-			{#each TIMER_OPTIONS as opt}
+			{#each TIMER_OPTIONS as opt (opt.value)}
 				<option value={opt.value}>{opt.label}</option>
 			{/each}
 		</select>
 	</div>
 
 	<a
-		href={sessionUrl}
+		href={selectedDeck
+			? resolve(
+					`/study/session?deck=${selectedDeck}&timer=${timerSeconds}&direction=${direction}&romaji=false&limit=${cardLimit}`
+				)
+			: undefined}
 		class="block w-full rounded-2xl py-4 text-center text-base font-medium transition {selectedDeck
 			? 'bg-indigo-600 text-white hover:bg-indigo-700'
 			: 'cursor-not-allowed bg-gray-200 text-gray-400'}"

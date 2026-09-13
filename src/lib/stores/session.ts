@@ -32,7 +32,11 @@ function createSessionStore() {
 		get current() {
 			return session;
 		},
-		start(s: Omit<StudySession, 'currentIndex' | 'entries' | 'revealed' | 'studySessionId'> & { studySessionId: string }) {
+		start(
+			s: Omit<StudySession, 'currentIndex' | 'entries' | 'revealed' | 'studySessionId'> & {
+				studySessionId: string;
+			}
+		) {
 			session = { ...s, currentIndex: 0, entries: [], revealed: false };
 		},
 		reveal() {
@@ -40,7 +44,11 @@ function createSessionStore() {
 		},
 		record(quality: AppQuality, responseTimeMs: number) {
 			if (!session) return;
-			session.entries.push({ cardId: session.cards[session.currentIndex].id, quality, responseTimeMs });
+			session.entries.push({
+				cardId: session.cards[session.currentIndex].id,
+				quality,
+				responseTimeMs
+			});
 			session.revealed = false;
 			session.currentIndex++;
 		},

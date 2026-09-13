@@ -13,7 +13,6 @@ async function register(page: import('@playwright/test').Page, email: string, pa
 	await expect(page).toHaveURL('/study');
 }
 
-
 test.describe('Autenticación', () => {
 	test('registro → logout → login', async ({ page }) => {
 		await register(page, EMAIL, PASSWORD);

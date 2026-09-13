@@ -49,7 +49,10 @@ test.describe('Modo alfabeto', () => {
 			const revealBtn = page.getByRole('button', { name: 'Revelar respuesta' });
 			if (!(await revealBtn.isVisible({ timeout: 3000 }).catch(() => false))) break;
 
-			const frontText = await page.locator('[data-testid="flashcard"] p.text-5xl').first().textContent();
+			const frontText = await page
+				.locator('[data-testid="flashcard"] p.text-5xl')
+				.first()
+				.textContent();
 			if (frontText && frontText.trim()) {
 				expect(seenFronts.has(frontText.trim())).toBe(false);
 				seenFronts.add(frontText.trim());
@@ -63,7 +66,10 @@ test.describe('Modo alfabeto', () => {
 	test('flujo jamo coreano: consonantes → sesión arranca', async ({ page }) => {
 		await page.goto('/alphabet/ko');
 
-		const conBtn = page.locator('button').filter({ hasText: /consonantes/i }).first();
+		const conBtn = page
+			.locator('button')
+			.filter({ hasText: /consonantes/i })
+			.first();
 		const visible = await conBtn.isVisible({ timeout: 5000 }).catch(() => false);
 		if (!visible) {
 			test.skip();
@@ -77,6 +83,8 @@ test.describe('Modo alfabeto', () => {
 
 		await startLink.click();
 		await expect(page).toHaveURL(/\/study\/session/);
-		await expect(page.getByRole('button', { name: 'Revelar respuesta' })).toBeVisible({ timeout: 5000 });
+		await expect(page.getByRole('button', { name: 'Revelar respuesta' })).toBeVisible({
+			timeout: 5000
+		});
 	});
 });

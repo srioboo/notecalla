@@ -21,7 +21,9 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 		})
 		.from(decks)
 		.leftJoin(cards, and(eq(cards.deckId, decks.id), eq(cards.suspended, false)))
-		.where(and(eq(decks.languageId, langId), or(eq(decks.isSystem, true), eq(decks.createdBy, userId))))
+		.where(
+			and(eq(decks.languageId, langId), or(eq(decks.isSystem, true), eq(decks.createdBy, userId)))
+		)
 		.groupBy(decks.id);
 
 	return { decks: rows };

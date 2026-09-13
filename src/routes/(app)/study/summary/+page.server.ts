@@ -16,6 +16,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 	const entries = await db
 		.select({
+			id: sessionEntries.id,
 			quality: sessionEntries.quality,
 			responseTimeMs: sessionEntries.responseTimeMs,
 			native: cards.native,

@@ -13,8 +13,6 @@
 		showRomaji?: boolean;
 		/** Label for the front side — shown above the main word */
 		frontHint?: string;
-		/** Label for the back side */
-		backHint?: string;
 	}
 
 	let {
@@ -22,8 +20,7 @@
 		revealed,
 		direction = 'target_to_native',
 		showRomaji = true,
-		frontHint,
-		backHint
+		frontHint
 	}: Props = $props();
 
 	const showNativeFirst = $derived(direction !== 'native_to_target');

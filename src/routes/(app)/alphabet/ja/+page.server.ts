@@ -10,12 +10,7 @@ export const load: PageServerLoad = async () => {
 	const alphabetDecks = await db
 		.select({ id: decks.id, name: decks.name, description: decks.description })
 		.from(decks)
-		.where(
-			and(
-				eq(decks.languageId, 'ja'),
-				eq(decks.isSystem, true)
-			)
-		);
+		.where(and(eq(decks.languageId, 'ja'), eq(decks.isSystem, true)));
 
 	// Filter to alphabet decks only (exclude vocabulary decks)
 	const filtered = alphabetDecks.filter((d) => ALPHABET_DECK_NAMES.includes(d.name));

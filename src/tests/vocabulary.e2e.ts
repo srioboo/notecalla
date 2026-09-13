@@ -21,7 +21,9 @@ test.describe('Sesión de vocabulario', () => {
 	test('flujo completo: configurar → estudiar → ver resumen', async ({ page }) => {
 		const deckSelect = page.locator('select[name="deckId"]').first();
 
-		await page.waitForSelector('select[name="deckId"] option:not([value=""])', { timeout: 5000 }).catch(() => null);
+		await page
+			.waitForSelector('select[name="deckId"] option:not([value=""])', { timeout: 5000 })
+			.catch(() => null);
 		const options = await deckSelect.locator('option').count();
 
 		if (options <= 1) {

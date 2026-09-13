@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import type { ActionData } from './$types';
 
 	let { form }: { form: ActionData } = $props();
@@ -66,6 +67,7 @@
 
 	<p class="mt-4 text-center text-sm text-gray-500">
 		¿Ya tienes cuenta?
-		<a href="/login" class="font-medium text-indigo-600 hover:underline">Inicia sesión</a>
+		<a href={resolve('/login')} class="font-medium text-indigo-600 hover:underline">Inicia sesión</a
+		>
 	</p>
 </div>

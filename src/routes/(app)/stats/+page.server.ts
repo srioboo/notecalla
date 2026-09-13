@@ -40,6 +40,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		// Top 10 hardest cards
 		db
 			.select({
+				cardId: sessionEntries.cardId,
 				native: cards.native,
 				reading: cards.reading,
 				translation: cards.translation,
@@ -56,7 +57,6 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 
 	// Compute streak from consecutive days
 	let streakDays = 0;
-	const today = new Date().toISOString().slice(0, 10);
 	for (let i = 0; i < streak.length; i++) {
 		const expected = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
 		if (streak[i].day === expected) {
@@ -69,8 +69,12 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 	// SM-2 bucket distribution
 	const sm2 = {
 		new: sm2Dist.filter((r) => r.interval === 0).reduce((s, r) => s + r.count, 0),
-		learning: sm2Dist.filter((r) => r.interval > 0 && r.interval <= 7).reduce((s, r) => s + r.count, 0),
-		consolidated: sm2Dist.filter((r) => r.interval > 7 && r.interval <= 21).reduce((s, r) => s + r.count, 0),
+		learning: sm2Dist
+			.filter((r) => r.interval > 0 && r.interval <= 7)
+			.reduce((s, r) => s + r.count, 0),
+		consolidated: sm2Dist
+			.filter((r) => r.interval > 7 && r.interval <= 21)
+			.reduce((s, r) => s + r.count, 0),
 		mastered: sm2Dist.filter((r) => r.interval > 21).reduce((s, r) => s + r.count, 0)
 	};
 

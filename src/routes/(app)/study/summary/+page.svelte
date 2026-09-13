@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -49,12 +50,16 @@
 				</tr>
 			</thead>
 			<tbody class="divide-y divide-gray-100">
-				{#each data.entries as entry}
+				{#each data.entries as entry (entry.id)}
 					<tr class="hover:bg-gray-50">
 						<td class="px-4 py-2.5 text-lg">{entry.native}</td>
 						<td class="px-4 py-2.5 text-gray-600">{entry.translation}</td>
 						<td class="px-4 py-2.5">
-							<span class="rounded-full px-2 py-0.5 text-[11px] font-medium {QUALITY_COLORS[entry.quality]}">
+							<span
+								class="rounded-full px-2 py-0.5 text-[11px] font-medium {QUALITY_COLORS[
+									entry.quality
+								]}"
+							>
 								{QUALITY_LABELS[entry.quality]}
 							</span>
 						</td>
@@ -69,13 +74,13 @@
 
 	<div class="flex gap-3">
 		<a
-			href="/study"
+			href={resolve('/study')}
 			class="flex-1 rounded-2xl bg-indigo-600 py-3 text-center text-sm font-medium text-white hover:bg-indigo-700"
 		>
 			Nueva sesión
 		</a>
 		<a
-			href="/stats"
+			href={resolve('/stats')}
 			class="rounded-2xl bg-gray-100 px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-200"
 		>
 			Ver progreso

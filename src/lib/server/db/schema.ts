@@ -1,8 +1,18 @@
-import { boolean, doublePrecision, integer, pgTable, primaryKey, text, timestamp } from 'drizzle-orm/pg-core';
+import {
+	boolean,
+	doublePrecision,
+	integer,
+	pgTable,
+	primaryKey,
+	text,
+	timestamp
+} from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const languages = pgTable('languages', {
-	id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
 	code: text('code').notNull().unique(), // 'ja' | 'ko'
 	name: text('name').notNull()
 });
@@ -27,7 +37,9 @@ export const sessions = pgTable('sessions', {
 });
 
 export const decks = pgTable('decks', {
-	id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
 	languageId: text('language_id')
 		.notNull()
 		.references(() => languages.id),
@@ -49,7 +61,9 @@ export const deckTags = pgTable('deck_tags', {
 });
 
 export const cards = pgTable('cards', {
-	id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
 	deckId: text('deck_id')
 		.notNull()
 		.references(() => decks.id, { onDelete: 'cascade' }),
@@ -62,7 +76,9 @@ export const cards = pgTable('cards', {
 });
 
 export const cardProgress = pgTable('card_progress', {
-	id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
 	cardId: text('card_id')
 		.notNull()
 		.references(() => cards.id, { onDelete: 'cascade' }),
@@ -78,7 +94,9 @@ export const cardProgress = pgTable('card_progress', {
 });
 
 export const studySessions = pgTable('study_sessions', {
-	id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
 	userId: text('user_id')
 		.notNull()
 		.references(() => users.id, { onDelete: 'cascade' }),
@@ -95,7 +113,9 @@ export const studySessions = pgTable('study_sessions', {
 });
 
 export const sessionEntries = pgTable('session_entries', {
-	id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
 	studySessionId: text('study_session_id')
 		.notNull()
 		.references(() => studySessions.id, { onDelete: 'cascade' }),

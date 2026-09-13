@@ -1,7 +1,7 @@
 <script lang="ts">
 	interface Props {
-		seconds: number;       // total duration
-		remaining: number;     // current remaining
+		seconds: number; // total duration
+		remaining: number; // current remaining
 		size?: number;
 	}
 

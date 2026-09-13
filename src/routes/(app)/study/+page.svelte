@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import type { PageData, ActionData } from './$types';
+	import { resolve } from '$app/paths';
+	import type { PageData } from './$types';
 
-	let { data, form }: { data: PageData; form: ActionData } = $props();
+	let { data }: { data: PageData } = $props();
 
 	const TIMER_OPTIONS = [
 		{ value: 5, label: '5 s' },
@@ -43,12 +44,13 @@
 		<div class="rounded-2xl border-2 border-dashed border-gray-200 px-8 py-16 text-center">
 			<p class="text-gray-500">No hay mazos disponibles para este idioma.</p>
 			<p class="mt-1 text-sm text-gray-400">
-				Ve a <a href="/decks" class="text-indigo-600 hover:underline">Mazos</a> para crear el primero.
+				Ve a <a href={resolve('/decks')} class="text-indigo-600 hover:underline">Mazos</a> para crear
+				el primero.
 			</p>
 		</div>
 	{:else}
 		<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-			{#each data.decks as deck}
+			{#each data.decks as deck (deck.id)}
 				<button
 					type="button"
 					onclick={() => (selectedDeck = deck.id)}
@@ -75,26 +77,30 @@
 			<h2 class="mb-4 font-semibold text-gray-900">Configuración</h2>
 			<div class="grid gap-4 sm:grid-cols-3">
 				<div>
-					<label for="timerSeconds" class="mb-1 block text-sm font-medium text-gray-700">Tiempo por tarjeta</label>
+					<label for="timerSeconds" class="mb-1 block text-sm font-medium text-gray-700"
+						>Tiempo por tarjeta</label
+					>
 					<select
 						id="timerSeconds"
 						bind:value={timerSeconds}
 						class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
 					>
-						{#each TIMER_OPTIONS as opt}
+						{#each TIMER_OPTIONS as opt (opt.value)}
 							<option value={opt.value}>{opt.label}</option>
 						{/each}
 					</select>
 				</div>
 
 				<div>
-					<label for="cardDirection" class="mb-1 block text-sm font-medium text-gray-700">Dirección</label>
+					<label for="cardDirection" class="mb-1 block text-sm font-medium text-gray-700"
+						>Dirección</label
+					>
 					<select
 						id="cardDirection"
 						bind:value={cardDirection}
 						class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
 					>
-						{#each DIRECTION_OPTIONS as opt}
+						{#each DIRECTION_OPTIONS as opt (opt.value)}
 							<option value={opt.value}>{opt.label}</option>
 						{/each}
 					</select>
@@ -121,8 +127,10 @@
 
 			<a
 				href={selectedDeck
-					? `/study/session?deck=${selectedDeck}&timer=${timerSeconds}&direction=${cardDirection}&romaji=${showRomaji}`
-					: '#'}
+					? resolve(
+							`/study/session?deck=${selectedDeck}&timer=${timerSeconds}&direction=${cardDirection}&romaji=${showRomaji}`
+						)
+					: undefined}
 				class="rounded-lg px-6 py-2.5 text-sm font-medium transition {selectedDeck
 					? 'bg-indigo-600 text-white hover:bg-indigo-700'
 					: 'cursor-not-allowed bg-gray-200 text-gray-400'}"

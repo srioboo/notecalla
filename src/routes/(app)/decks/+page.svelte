@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -31,7 +32,16 @@
 	{#if showCreate}
 		<div class="rounded-2xl bg-white p-6 ring-1 ring-gray-200">
 			<h2 class="mb-4 font-semibold text-gray-900">Nuevo mazo</h2>
-			<form method="POST" action="?/create" use:enhance={() => async ({ update }) => { showCreate = false; await update(); }} class="space-y-3">
+			<form
+				method="POST"
+				action="?/create"
+				use:enhance={() =>
+					async ({ update }) => {
+						showCreate = false;
+						await update();
+					}}
+				class="space-y-3"
+			>
 				<div>
 					<label for="name" class="mb-1 block text-sm font-medium text-gray-700">Nombre</label>
 					<input
@@ -75,7 +85,7 @@
 		</div>
 	{:else}
 		<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-			{#each data.decks as deck}
+			{#each data.decks as deck (deck.id)}
 				<div class="rounded-2xl bg-white p-5 ring-1 ring-gray-200">
 					<div class="flex items-start justify-between">
 						<div>
@@ -96,7 +106,7 @@
 
 					<div class="mt-4 flex gap-2">
 						<a
-							href="/decks/{deck.id}"
+							href={resolve(`/decks/${deck.id}`)}
 							class="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200"
 							>Ver tarjetas</a
 						>
@@ -117,8 +127,7 @@
 									class="rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50"
 									onclick={(e) => {
 										if (!confirm('¿Eliminar este mazo?')) e.preventDefault();
-									}}
-									>Eliminar</button
+									}}>Eliminar</button
 								>
 							</form>
 						{/if}

@@ -2,7 +2,7 @@ import { Lucia } from 'lucia';
 import { eq, lte } from 'drizzle-orm';
 import { db } from './db/index';
 import { sessions, users } from './db/schema';
-import type { Adapter, DatabaseSession, DatabaseUser } from 'lucia';
+import type { Adapter, DatabaseSession } from 'lucia';
 
 const adapter: Adapter = {
 	async getSessionAndUser(sessionId) {
@@ -37,14 +37,12 @@ const adapter: Adapter = {
 
 	async getUserSessions(userId) {
 		const rows = await db.select().from(sessions).where(eq(sessions.userId, userId));
-		return rows.map(
-			(s): DatabaseSession => ({
-				id: s.id,
-				userId: s.userId,
-				expiresAt: s.expiresAt,
-				attributes: {}
-			})
-		);
+		return rows.map((s): DatabaseSession => ({
+			id: s.id,
+			userId: s.userId,
+			expiresAt: s.expiresAt,
+			attributes: {}
+		}));
 	},
 
 	async setSession(session) {

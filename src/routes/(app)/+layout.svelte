@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { invalidateAll, goto } from '$app/navigation';
+	import { invalidateAll } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import type { LayoutData } from './$types';
 
@@ -21,17 +22,17 @@
 		{ href: '/alphabet', label: 'Alfabeto' },
 		{ href: '/decks', label: 'Mazos' },
 		{ href: '/stats', label: 'Progreso' }
-	];
+	] as const;
 </script>
 
 <div class="flex min-h-screen flex-col bg-gray-50">
 	<header class="border-b border-gray-200 bg-white">
 		<nav class="mx-auto flex max-w-5xl items-center gap-6 px-4 py-3">
-			<a href="/study" class="mr-2 text-lg font-bold text-indigo-600">Notecalla</a>
+			<a href={resolve('/study')} class="mr-2 text-lg font-bold text-indigo-600">Notecalla</a>
 
-			{#each navLinks as link}
+			{#each navLinks as link (link.href)}
 				<a
-					href={link.href}
+					href={resolve(link.href)}
 					class="text-sm font-medium transition-colors {page.url.pathname.startsWith(link.href)
 						? 'text-indigo-600'
 						: 'text-gray-600 hover:text-gray-900'}"
@@ -43,7 +44,7 @@
 			<div class="ml-auto flex items-center gap-3">
 				<!-- Language switcher -->
 				<div class="flex rounded-lg border border-gray-200 bg-gray-100 p-0.5">
-					{#each LANGS as lang}
+					{#each LANGS as lang (lang.code)}
 						<button
 							type="button"
 							onclick={() => switchLang(lang.code)}

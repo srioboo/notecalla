@@ -21,12 +21,7 @@
 
 	<!-- Summary stats -->
 	<div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-		{#each [
-			{ label: 'Racha', value: `${data.streakDays} día${data.streakDays === 1 ? '' : 's'}`, color: 'text-amber-600' },
-			{ label: 'Precisión', value: `${data.accuracy}%`, color: 'text-green-600' },
-			{ label: 'Tarjetas revisadas', value: data.totalCards, color: 'text-indigo-600' },
-			{ label: 'Aciertos', value: data.correctCards, color: 'text-blue-600' }
-		] as stat}
+		{#each [{ label: 'Racha', value: `${data.streakDays} día${data.streakDays === 1 ? '' : 's'}`, color: 'text-amber-600' }, { label: 'Precisión', value: `${data.accuracy}%`, color: 'text-green-600' }, { label: 'Tarjetas revisadas', value: data.totalCards, color: 'text-indigo-600' }, { label: 'Aciertos', value: data.correctCards, color: 'text-blue-600' }] as stat (stat.label)}
 			<div class="rounded-2xl bg-white p-5 ring-1 ring-gray-200">
 				<p class="text-xs font-medium text-gray-500">{stat.label}</p>
 				<p class="mt-1 text-2xl font-bold {stat.color}">{stat.value}</p>
@@ -38,12 +33,7 @@
 	<div class="rounded-2xl bg-white p-6 ring-1 ring-gray-200">
 		<h2 class="mb-4 font-semibold text-gray-900">Distribución de tarjetas</h2>
 		<div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-			{#each [
-				{ label: 'Nuevas', value: data.sm2.new, color: 'bg-gray-100 text-gray-600' },
-				{ label: 'Aprendiendo', value: data.sm2.learning, color: 'bg-blue-100 text-blue-700' },
-				{ label: 'Consolidadas', value: data.sm2.consolidated, color: 'bg-indigo-100 text-indigo-700' },
-				{ label: 'Dominadas', value: data.sm2.mastered, color: 'bg-green-100 text-green-700' }
-			] as bucket}
+			{#each [{ label: 'Nuevas', value: data.sm2.new, color: 'bg-gray-100 text-gray-600' }, { label: 'Aprendiendo', value: data.sm2.learning, color: 'bg-blue-100 text-blue-700' }, { label: 'Consolidadas', value: data.sm2.consolidated, color: 'bg-indigo-100 text-indigo-700' }, { label: 'Dominadas', value: data.sm2.mastered, color: 'bg-green-100 text-green-700' }] as bucket (bucket.label)}
 				<div class="rounded-xl {bucket.color} px-4 py-3 text-center">
 					<p class="text-2xl font-bold">{bucket.value}</p>
 					<p class="text-xs font-medium">{bucket.label}</p>
@@ -57,7 +47,7 @@
 		<div class="rounded-2xl bg-white p-6 ring-1 ring-gray-200">
 			<h2 class="mb-4 font-semibold text-gray-900">Tarjetas más difíciles</h2>
 			<div class="space-y-2">
-				{#each data.hardCards as card}
+				{#each data.hardCards as card (card.cardId)}
 					<div class="flex items-center gap-4 rounded-lg px-3 py-2 hover:bg-gray-50">
 						<span class="w-16 text-xl">{card.native}</span>
 						<span class="text-xs text-gray-400">{card.reading ?? ''}</span>
@@ -76,7 +66,7 @@
 			<p class="text-sm text-gray-400">Aún no has completado ninguna sesión.</p>
 		{:else}
 			<div class="space-y-2">
-				{#each data.sessions as session}
+				{#each data.sessions as session (session.id)}
 					<div class="flex items-center gap-4 rounded-lg px-3 py-2 hover:bg-gray-50">
 						<span class="flex-1 text-sm text-gray-700">{formatDate(session.startedAt)}</span>
 						<span class="text-sm text-gray-500"
@@ -84,7 +74,9 @@
 						>
 						{#if session.totalCards > 0}
 							<span
-								class="text-xs font-medium {Math.round((session.correctCards / session.totalCards) * 100) >= 70
+								class="text-xs font-medium {Math.round(
+									(session.correctCards / session.totalCards) * 100
+								) >= 70
 									? 'text-green-600'
 									: 'text-amber-600'}"
 							>

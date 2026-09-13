@@ -10,10 +10,10 @@ La aplicación arranca con soporte para **japonés** y **coreano**, con la posib
 
 ## 2. Idiomas soportados
 
-| Idioma   | Escrituras incluidas                          |
-|----------|-----------------------------------------------|
-| Japonés  | Hiragana, Katakana, Kanji (JLPT N5–N1), Romaji |
-| Coreano  | Hangul (jamo y sílabas completas), Romanización RR |
+| Idioma  | Escrituras incluidas                               |
+| ------- | -------------------------------------------------- |
+| Japonés | Hiragana, Katakana, Kanji (JLPT N5–N1), Romaji     |
+| Coreano | Hangul (jamo y sílabas completas), Romanización RR |
 
 Todas las vistas de la aplicación deben renderizar correctamente caracteres CJK y coreanos junto a texto latino, sin sustituciones ni cajas vacías. La fuente tipográfica debe garantizar cobertura completa de estos rangos Unicode.
 
@@ -50,9 +50,11 @@ Orientado a aprender los sistemas de escritura antes de abordar el vocabulario g
 Los mazos de vocabulario se organizan en dos ejes:
 
 **Por categoría gramatical**
+
 - Sustantivos, verbos, adjetivos, adverbios, partículas, expresiones
 
 **Por tema semántico**
+
 - Saludos y presentaciones
 - Números y fechas
 - Colores y formas
@@ -74,13 +76,13 @@ El usuario puede combinar categoría gramatical y tema semántico para crear ses
 
 Antes de iniciar cada sesión el usuario puede ajustar:
 
-| Parámetro | Opciones | Por defecto |
-|-----------|----------|-------------|
-| Tiempo por tarjeta | 5 s / 10 s / 15 s / 20 s / sin límite | 10 s |
-| Número de tarjetas | 10 / 20 / 50 / todas las pendientes | 20 |
-| Dirección de la tarjeta | Idioma objetivo → nativo / Nativo → objetivo / Aleatoria | Aleatoria |
-| Incluir romaji/romanización | Sí / No | Sí (configurable por idioma) |
-| Orden | Según SM-2 (pendientes primero) / Aleatorio | SM-2 |
+| Parámetro                   | Opciones                                                 | Por defecto                  |
+| --------------------------- | -------------------------------------------------------- | ---------------------------- |
+| Tiempo por tarjeta          | 5 s / 10 s / 15 s / 20 s / sin límite                    | 10 s                         |
+| Número de tarjetas          | 10 / 20 / 50 / todas las pendientes                      | 20                           |
+| Dirección de la tarjeta     | Idioma objetivo → nativo / Nativo → objetivo / Aleatoria | Aleatoria                    |
+| Incluir romaji/romanización | Sí / No                                                  | Sí (configurable por idioma) |
+| Orden                       | Según SM-2 (pendientes primero) / Aleatorio              | SM-2                         |
 
 ---
 
@@ -144,27 +146,27 @@ Los siguientes elementos se dejan explícitamente fuera de la primera versión:
 
 Implementado con Drizzle ORM sobre PostgreSQL. Todas las tablas usan UUIDs como clave primaria generados en aplicación con `crypto.randomUUID()`.
 
-| Tabla | Columnas clave | Notas |
-|---|---|---|
-| `languages` | `id`, `code` (`ja`\|`ko`), `name` | `code` único |
-| `users` | `id`, `email`, `password_hash`, `native_language`, `created_at` | `email` único |
-| `sessions` | `id`, `user_id`, `expires_at` | Tabla de sesiones Lucia v3 |
-| `decks` | `id`, `language_id`, `name`, `description`, `is_system`, `created_by`, `created_at` | `is_system=true` → solo lectura |
-| `deck_tags` | `deck_id`, `tag`, `tag_type` (`theme`\|`grammar`) | Sin PK propio |
-| `cards` | `id`, `deck_id`, `native`, `reading`, `translation`, `example`, `notes`, `suspended` | |
-| `card_progress` | `id`, `card_id`, `user_id`, `ease_factor`, `interval`, `next_review`, `repetitions` | Estado SM-2 por (usuario, tarjeta) |
-| `study_sessions` | `id`, `user_id`, `language_id`, `deck_id`, `started_at`, `completed_at`, `total_cards`, `correct_cards` | |
-| `session_entries` | `id`, `study_session_id`, `card_id`, `quality` (0–3), `response_time_ms`, `reviewed_at` | |
-| `user_settings` | `user_id` + `language_code` (PK compuesta), `timer_seconds`, `card_direction`, `show_romaji` | Una fila por (usuario, idioma) |
+| Tabla             | Columnas clave                                                                                          | Notas                              |
+| ----------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `languages`       | `id`, `code` (`ja`\|`ko`), `name`                                                                       | `code` único                       |
+| `users`           | `id`, `email`, `password_hash`, `native_language`, `created_at`                                         | `email` único                      |
+| `sessions`        | `id`, `user_id`, `expires_at`                                                                           | Tabla de sesiones Lucia v3         |
+| `decks`           | `id`, `language_id`, `name`, `description`, `is_system`, `created_by`, `created_at`                     | `is_system=true` → solo lectura    |
+| `deck_tags`       | `deck_id`, `tag`, `tag_type` (`theme`\|`grammar`)                                                       | Sin PK propio                      |
+| `cards`           | `id`, `deck_id`, `native`, `reading`, `translation`, `example`, `notes`, `suspended`                    |                                    |
+| `card_progress`   | `id`, `card_id`, `user_id`, `ease_factor`, `interval`, `next_review`, `repetitions`                     | Estado SM-2 por (usuario, tarjeta) |
+| `study_sessions`  | `id`, `user_id`, `language_id`, `deck_id`, `started_at`, `completed_at`, `total_cards`, `correct_cards` |                                    |
+| `session_entries` | `id`, `study_session_id`, `card_id`, `quality` (0–3), `response_time_ms`, `reviewed_at`                 |                                    |
+| `user_settings`   | `user_id` + `language_code` (PK compuesta), `timer_seconds`, `card_direction`, `show_romaji`            | Una fila por (usuario, idioma)     |
 
 ### Escala de calidad SM-2
 
 | Valor | Significado |
-|---|---|
-| 0 | No lo sabía |
-| 1 | Difícil |
-| 2 | Fácil |
-| 3 | Muy fácil |
+| ----- | ----------- |
+| 0     | No lo sabía |
+| 1     | Difícil     |
+| 2     | Fácil       |
+| 3     | Muy fácil   |
 
 Mapeados internamente a la escala 0–5 del algoritmo SM-2 original.
 
