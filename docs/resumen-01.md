@@ -1,5 +1,11 @@
 # Sesión 01 — Resumen de trabajo (2026-06-28)
 
+> **Nota (2026-09-13):** el plan de despliegue original de esta sesión (Turso/libSQL + Vercel) fue
+> reemplazado en una sesión posterior por PostgreSQL autoalojado + `adapter-node` (commits
+> `7c513b2`, `ed935f8`, `abdcb49`). La sección "Stack final" y "Tareas pendientes" de este
+> documento se han actualizado para reflejar el estado actual; el resto del resumen se conserva
+> como registro histórico de la sesión 01.
+
 ## Objetivo
 
 Construcción desde cero de **Notecalla**, aplicación de aprendizaje de idiomas (japonés y coreano) con tarjetas de memoria y repetición espaciada SM-2.
@@ -70,18 +76,18 @@ Construcción desde cero de **Notecalla**, aplicación de aprendizaje de idiomas
 
 ## Stack final
 
-| Capa | Tecnología |
-|------|-----------|
-| Framework | SvelteKit 2 + Svelte 5 runes |
-| Package manager | Bun |
-| Estilos | Tailwind CSS v4 |
-| ORM | Drizzle ORM |
-| Base de datos | Turso (libSQL) / `file:local.db` en dev |
-| Auth | Lucia v3 (email/contraseña, adaptador manual) |
-| Tests unitarios | Vitest — 9 tests |
-| Tests e2e | Playwright — 7 tests |
-| Adapter | @sveltejs/adapter-vercel (nodejs22.x) |
-| Tipografía CJK | Noto Sans JP + Noto Sans KR (Google Fonts) |
+| Capa            | Tecnología                                                            |
+| --------------- | --------------------------------------------------------------------- |
+| Framework       | SvelteKit 2 + Svelte 5 runes                                          |
+| Package manager | Bun                                                                   |
+| Estilos         | Tailwind CSS v4                                                       |
+| ORM             | Drizzle ORM                                                           |
+| Base de datos   | PostgreSQL (Docker/Podman local; cualquier servidor PG en producción) |
+| Auth            | Lucia v3 (email/contraseña, adaptador manual)                         |
+| Tests unitarios | Vitest — 9 tests                                                      |
+| Tests e2e       | Playwright — 7 tests                                                  |
+| Adapter         | @sveltejs/adapter-node (Node.js 22)                                   |
+| Tipografía CJK  | Noto Sans JP + Noto Sans KR (Google Fonts)                            |
 
 ---
 
@@ -97,29 +103,30 @@ Construcción desde cero de **Notecalla**, aplicación de aprendizaje de idiomas
 
 ---
 
-## Tareas pendientes antes de desplegar en Vercel
+## Tareas pendientes antes de desplegar
 
-1. **Crear base de datos en Turso**
-   - Ir a [turso.tech](https://turso.tech), crear una DB (free tier: 500 DBs, 9 GB, 1B lecturas/mes)
-   - Obtener `DATABASE_URL` (formato `libsql://nombre-org.turso.io`) y `DATABASE_AUTH_TOKEN`
+1. **Provisionar un servidor PostgreSQL de producción**
+   - Cualquier proveedor con PostgreSQL accesible (Fly.io, Railway, VPS, RDS, etc.)
+   - Obtener `DATABASE_URL` (formato `postgresql://usuario:contraseña@host:5432/db`)
 
 2. **Aplicar el schema en producción**
+
    ```bash
-   DATABASE_URL=libsql://... DATABASE_AUTH_TOKEN=... bun run db:migrate
+   DATABASE_URL=postgresql://... bun run db:migrate
    ```
 
 3. **Cargar datos semilla en producción**
+
    ```bash
-   DATABASE_URL=libsql://... DATABASE_AUTH_TOKEN=... bun run db:seed
+   DATABASE_URL=postgresql://... bun run db:seed
    ```
 
-4. **Conectar repositorio GitHub a Vercel**
-   - En el dashboard de Vercel: New Project → importar el repositorio
-   - Framework preset: SvelteKit (detectado automáticamente)
+4. **Construir y desplegar el contenedor**
+   - `Dockerfile` incluido (build multi-stage, Node.js 22, `adapter-node`)
+   - Alternativa: desplegar el build de `adapter-node` (`build/`) directamente en cualquier host con Node.js 22
 
-5. **Añadir variables de entorno en Vercel**
-   - `DATABASE_URL` → valor de Turso
-   - `DATABASE_AUTH_TOKEN` → token de Turso
+5. **Configurar variables de entorno en el host de producción**
+   - `DATABASE_URL` → cadena de conexión del PostgreSQL de producción
 
 6. **Instalar Playwright localmente para e2e en local**
    ```bash
